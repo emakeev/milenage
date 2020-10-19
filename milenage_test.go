@@ -13,36 +13,11 @@ package milenage_test
 
 import (
 	"encoding/hex"
-	"fmt"
 	"testing"
 
 	"github.com/emakeev/milenage"
 	"github.com/stretchr/testify/assert"
 )
-
-// MockRNG yields a constant byte sequence instead of generating a new random sequence each time.
-type MockRNG struct {
-	rand []byte
-}
-
-func (rng MockRNG) Read(b []byte) (int, error) {
-	copy(b, rng.rand)
-
-	if len(b) <= len(rng.rand) {
-		return len(b), nil
-	}
-	return len(rng.rand), fmt.Errorf("not enough data to read")
-}
-
-// NewMockMilenageCipher instantiates the Milenage algo using MockRNG for rng.
-func NewMockCipher(amf []byte, rand []byte) (*milenage.Cipher, error) {
-	milenage, err := milenage.NewCipher(amf)
-	if err != nil {
-		return nil, err
-	}
-	milenage.SetRng(MockRNG{rand: rand})
-	return milenage, nil
-}
 
 func TestGenerateEutranVector(t *testing.T) {
 	rand := []byte("\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f")
@@ -52,7 +27,7 @@ func TestGenerateEutranVector(t *testing.T) {
 	amf := []byte("\x80\x00")
 	plmn := []byte("\x02\xf8\x59")
 
-	milenage, err := NewMockCipher(amf, rand)
+	milenage, err := milenage.NewMockCipher(amf, rand)
 	assert.NoError(t, err)
 
 	eutran, err := milenage.GenerateEutranVector(key, opc, sqn, plmn)
@@ -70,7 +45,7 @@ func TestGenerateSIPAuthVector(t *testing.T) {
 	opc := []byte("\x8e'\xb6\xaf\x0ei.u\x0f2fz;\x14`]")
 	amf := []byte("\x80\x00")
 
-	milenage, err := NewMockCipher(amf, rand)
+	milenage, err := milenage.NewMockCipher(amf, rand)
 	assert.NoError(t, err)
 
 	vector, err := milenage.GenerateSIPAuthVector(key, opc, sqn)
