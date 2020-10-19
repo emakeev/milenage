@@ -1,0 +1,11 @@
+language: go
+
+go:
+  - "1.14"
+
+script:
+  - go vet ./...
+  - go test -race ./...
+
+install:
+  - go get -v github.com/stretchr/testify@v1.6.1
